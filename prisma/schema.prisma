@@ -1,0 +1,240 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+   url      = env("DATABASE_URL")
+  // url      = env("DATABASE_URL_2")
+}
+
+
+
+model User {
+  id              String @id @default(auto()) @map("_id") @db.ObjectId
+  name            String?  
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  hashedPassword  String?
+  detail          String?
+  stripeAccountId        String?
+  rememberToken      String?  
+  rememberTokenExpiry DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  //for delete account
+  deletedName    String?
+  deletedEmail    String?
+  deletedAt       DateTime?
+  reregisterExpiry DateTime?
+
+  oldId Int?
+ 
+  interestIds     String[] @db.ObjectId
+  bookmarkBookIds         String[] @db.ObjectId
+  bookmarkLinesIds        String[] @db.ObjectId
+
+  accounts Account[]
+  lines Lines[]
+  between Between[]
+  uploadedImages UploadedImage[]
+  rejectedUser RejectedUser[]
+  notifications Thanks[] @relation("ReceivedBy")
+  receivedNotifications Thanks[]  @relation("SentBy")
+  requestNotification ThanksRequest[] @relation("ReceivedBy")
+  requestApprovedNotifications ThanksRequest[]  @relation("SentBy")
+  
+  
+
+}
+
+model Account {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId             String   @db.ObjectId
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String?  @db.String
+  access_token       String?  @db.String
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String?  @db.String
+  session_state      String?
+
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Book {
+  id             String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  titleAlphabet String
+  author String
+  published String
+  publisher  String
+  isbn String @unique
+
+  oldId Int? 
+
+  createdAt       DateTime @default(now())
+
+  lines Lines[]
+
+}
+
+
+model Lines {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  bookId String @db.ObjectId  
+  pageBefore String
+  pageAfter String?//I will change it unoptional in the future
+  lineBefore String
+  lineAfter String
+  motivation String
+  isPrivate Boolean
+
+  oldId Int? 
+  oldEbook Boolean? @default(false)
+
+  
+  createdAt DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  interestIds     String[] @db.ObjectId
+
+  betweens Between[]
+  //これはmongoDBにembedded documentを保存するものではない
+  //データを取得するときにちょっと便利になるための仕様
+  //embedded documentsと機能的には等価と言える。
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book Book @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  
+}
+
+
+model Between { 
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  content String?
+  isPrivate Boolean
+
+  createdAt DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  oldId Int?
+
+  linesId String @db.ObjectId
+  uploadedImages UploadedImage[]
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lines Lines @relation(fields: [linesId], references: [id], onDelete: Cascade)
+
+
+
+}
+
+model Interest { 
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String @unique
+
+  oldId Int?
+  createdAt DateTime @default(now())
+}
+
+model UploadedImage{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  url String @unique
+  publicId String @unique
+  betweenId String? @db.ObjectId
+  userId String? @db.ObjectId
+  hidden Boolean @default(false)
+
+  user User? @relation(fields: [userId], references: [id], onDelete: Cascade)
+  between Between? @relation(fields: [betweenId], references: [id], onDelete: Cascade)
+
+}
+
+model Thanks {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  
+  stripePaymentId String?
+  amount Int
+  isRead Boolean @default(false)
+  content String
+  createdAt DateTime @default(now())
+
+  userId String @db.ObjectId
+  user User @relation("ReceivedBy",fields: [userId], references: [id], onDelete: Cascade)
+
+  opponentUserId String @db.ObjectId
+  opponentUser User @relation("SentBy",fields: [opponentUserId], references: [id], onDelete: Cascade)
+}
+
+model ThanksRequest {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  
+  amount Int
+  isUserRead Boolean @default(false)
+  isOpponentRead Boolean @default(false)
+  createdAt DateTime @default(now())
+   deletedAt       DateTime?
+   completedAt       DateTime?
+
+  userId String @db.ObjectId
+  user User @relation("ReceivedBy",fields: [userId], references: [id], onDelete: Cascade)
+
+  opponentUserId String @db.ObjectId
+  opponentUser User @relation("SentBy",fields: [opponentUserId], references: [id], onDelete: Cascade)
+}
+
+model CheckedPost{
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+
+  linesId String? @db.ObjectId
+  betweenId String? @db.ObjectId
+
+  approved Boolean @default(true)
+
+  createdAt DateTime @default(now())
+   updatedAt       DateTime @updatedAt
+
+
+}
+model RejectedUser{
+
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  userId String @db.ObjectId
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Admin{
+
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  isStripePause Boolean @default(false)
+  katexExample String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+}
+
+model Prompts {
+
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  prompt String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+
+}

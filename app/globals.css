@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+:root {
+  height: 100%;
+}
+
+/*for scrollbar*/
+::-webkit-scrollbar {
+  width: 7px;
+  height: 13px;
+}
+::-webkit-scrollbar-track {
+  background-color: #000000;
+  /* background-color: rgb(13, 17, 23); */
+  border-radius: 15%;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgb(177, 202, 178);
+  /* background-color: #606060; */
+}
+
+/* .sidebar ::-webkit-scrollbar {
+  width: 7px;
+  height: 13px;
+}
+.sidebar ::-webkit-scrollbar-track {
+  background-color: #000000;
+  border-radius: 15%;
+}
+.sidebar ::-webkit-scrollbar-thumb {
+  background-color: rgb(177, 202, 178);
+} */
+
+/*for scrollbar.*/
+/***特定要素を設定したいときはセレクターを指定*/
+/***https://kakechimaru.com/scrollbar_custom/*/
+/******この構文はfirefoxには適用されない。*/
+/******firefoxに適用可能な新構文：https://coliss.com/articles/build-websites/operation/css/custom-scrollbars-in-css.html*/
+
+/*react-md-editor*/
+/* Class names are written in the following file.*/
+/* @uiw/react-md-editor/markdown-editor.css ->editor */
+/* @uiw/react-markdown-preview/markdown.css ->preview */
+.wmde-markdown {
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  background-color: #282828 !important;
+}
+
+.grecaptcha-badge {
+  visibility: hidden;
+}
